@@ -10,7 +10,7 @@ require "./config"
 PER_PAGE = 50
 
 get "/" do
-  '<a href="/oauth/connect">Connect with Instagram</a>'
+  '<a href="/oauth/connect">Connect with Instagram</a>''<a href="/nav">Go to Navigation</a>'
 end
 
 get "/oauth/connect" do
@@ -43,21 +43,24 @@ get "/nav" do
   html
 end
 
+def _pre_process_resp resp
+  #going to do storage stuff.
+
+end
+
 def process_resp_with_like resp
+  _pre_process_resp
   resp.map{|media_item|  "<div style='float:left;'><img src='#{media_item.images.thumbnail.url}'><br/> <a href='/media_like/#{media_item.id}'>Like</a>  <a href='/media_unlike/#{media_item.id}'>Un-Like</a>  <br/>LikesCount=#{media_item.likes[:count]}</div>" } *"\n"
 end
 
 def process_resp_thumb_only resp
+  _pre_process_resp
   resp.map{|r| "<img src='#{r.images.thumbnail.url}'>" } * "\n"
 end
 
 def process_resp_std_with_debug resp
-  output=""
-  resp.each do |r|
-    output << "<img src='#{r.images.standard_resolution.url}'>"
-    output << "<pre>#{r.pretty_inspect}</pre>"
-  end
-  output
+  _pre_process_resp
+  resp.map{|r|  "<img src='#{r.images.standard_resolution.url}'> <pre>#{r.pretty_inspect}</pre>" } * "\n"
 end
 
 get "/user_recent_media/:who" do
