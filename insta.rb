@@ -34,7 +34,7 @@ get "/nav" do
       <li><a href='/user_search'>User Search</a> Calls user_search - Search for users on instagram, by name or username</li>
       <li><a href='/location_search'>Location Search</a> Calls location_search - Search for a location by lat/lng</li>
       <li><a href='/location_search_4square'>Location Search - 4Square</a> Calls location_search - Search for a location by Fousquare ID (v2)</li>
-      <li><a href='/tags'>Tags</a>Search for tags, view tag info and get media by tag</li>
+      <li><a href='/tags/your_tag'>Tags</a>Search for tags, view tag info and get media by tag</li>
       <li><a href='/limits'>View Rate Limit and Remaining API calls</a>View remaining and ratelimit info.</li>
     </ol>
   """
@@ -136,15 +136,36 @@ get "/location_search_4square" do
   html
 end
 
-get "/tags/:name" do
+def process_tags_resp resp
+  output=""
+  resp.each do |r|
+    #output << "<img src='#{r.images.standard_resolution.url}'>"   
+    output << "<img src='#{r.images.thumbnail.url}'>"   
+    #output << "<pre>#{r.pretty_inspect}</pre>" 
+  end
+  output
+end
+
+get "/tags/:name/:pages" do
   client = Instagram.client(:access_token => session[:access_token])
   html = "<h1>Search for tags, get tag info and get media by tag</h1>"
   tags = client.tag_search(params[:name])
+
   html << "<h2>Tag Name = #{tags[0].name}. Media Count =  #{tags[0].media_count}. </h2><br/><br/>"
-  for media_item in client.tag_recent_media(tags[0].name)
-    html << "<img src='#{media_item.images.standard_resolution.url}'>"
-  end
-  html <<"<pre>#{media_item.pretty_inspect}</pre>"
+  html << "<pre>#{tags.pretty_inspect}</pre>"
+
+ 
+  per_page = 50
+  resp=client.tag_recent_media(tags[0].name, {:count => per_page})
+  html << process_tags_resp(resp)
+
+  (params[:pages].to_i - 1 ).times do |i|
+    max_id = resp.pagination.next_max_id
+
+    resp= client.tag_recent_media(tags[0].name, {:count => per_page, :max_tag_id => max_id})                                                                                                                                        
+    html << process_tags_resp(resp)
+  end     
+
   html
 end
 
