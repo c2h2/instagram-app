@@ -7,6 +7,8 @@ enable :sessions
 
 require "./config"
 
+per_page = 50 
+
 get "/" do
   '<a href="/oauth/connect">Connect with Instagram</a>'
 end
@@ -26,7 +28,7 @@ get "/nav" do
   """
     <h1>Ruby Instagram Gem Sample Application</h1>
     <ol>
-      <li><a href='/user_recent_media'>User Recent Media</a> Calls user_recent_media - Get a list of a user's most recent media</li>
+      <li><a href='/user_recent_media/deadmau5'>User Recent Media</a> Calls user_recent_media - Get a list of a user's most recent media</li>
       <li><a href='/user_media_feed'>User Media Feed</a> Calls user_media_feed - Get the currently authenticated user's media feed uses pagination</li>
       <li><a href='/location_recent_media'>Location Recent Media</a> Calls location_recent_media - Get a list of recent media at a given location, in this case, the Instagram office</li>
       <li><a href='/media_search'>Media Search</a> Calls media_search - Get a list of media close to a given latitude and longitude</li>
@@ -34,20 +36,37 @@ get "/nav" do
       <li><a href='/user_search'>User Search</a> Calls user_search - Search for users on instagram, by name or username</li>
       <li><a href='/location_search'>Location Search</a> Calls location_search - Search for a location by lat/lng</li>
       <li><a href='/location_search_4square'>Location Search - 4Square</a> Calls location_search - Search for a location by Fousquare ID (v2)</li>
-      <li><a href='/tags/your_tag'>Tags</a>Search for tags, view tag info and get media by tag</li>
+      <li><a href='/tags/porsche991/2>Tags</a>Search for tags, view tag info and get media by tag</li>
       <li><a href='/limits'>View Rate Limit and Remaining API calls</a>View remaining and ratelimit info.</li>
     </ol>
   """
   html
 end
 
-get "/user_recent_media" do
+def process_resp2 resp
+  resp.map{}
+end
+
+
+get "/user_recent_media/:who" do
   client = Instagram.client(:access_token => session[:access_token])
-  user = client.user
-  html = "<h1>#{user.username}'s recent media</h1>"
-  for media_item in client.user_recent_media
+  user = client.user_search(params[:who]).first
+  resp = client.user_recent_media( user.id , :count=>per_page)
+  html = "<h1>#{params[:who]}'s recent media</h1>"
+  
+  for media_item in resp
     html << "<div style='float:left;'><img src='#{media_item.images.thumbnail.url}'><br/> <a href='/media_like/#{media_item.id}'>Like</a>  <a href='/media_unlike/#{media_item.id}'>Un-Like</a>  <br/>LikesCount=#{media_item.likes[:count]}</div>"
   end
+
+  (10 - 1 ).times do |i|
+    max_id = resp.pagination.next_max_id
+
+    resp= client.user_recent_media( user.id , {:count=>per_page, :max_tag_id => max_id})                                                                                                                                        
+    html << process_tags_resp(resp)
+  end     
+
+
+
   html
 end
 
@@ -127,15 +146,6 @@ get "/location_search" do
   html
 end
 
-get "/location_search_4square" do
-  client = Instagram.client(:access_token => session[:access_token])
-  html = "<h1>Search for a location by Fousquare ID (v2)</h1>"
-  for location in client.location_search("3fd66200f964a520c5f11ee3")
-    html << "<li> #{location.name} <a href='https://www.google.com/maps/preview/@#{location.latitude},#{location.longitude},19z'>Map</a></li>"
-  end
-  html
-end
-
 def process_tags_resp resp
   output=""
   resp.each do |r|
@@ -154,8 +164,6 @@ get "/tags/:name/:pages" do
   html << "<h2>Tag Name = #{tags[0].name}. Media Count =  #{tags[0].media_count}. </h2><br/><br/>"
   html << "<pre>#{tags.pretty_inspect}</pre>"
 
- 
-  per_page = 50
   resp=client.tag_recent_media(tags[0].name, {:count => per_page})
   html << process_tags_resp(resp)
 
