@@ -36,7 +36,7 @@ get "/nav" do
       <li><a href='/user_search'>User Search</a> Calls user_search - Search for users on instagram, by name or username</li>
       <li><a href='/location_search'>Location Search</a> Calls location_search - Search for a location by lat/lng</li>
       <li><a href='/location_search_4square'>Location Search - 4Square</a> Calls location_search - Search for a location by Fousquare ID (v2)</li>
-      <li><a href='/tags/porsche991/2>Tags</a>Search for tags, view tag info and get media by tag</li>
+      <li><a href='/tags/porsche991/2'>Tags</a>Search for tags, view tag info and get media by tag</li>
       <li><a href='/limits'>View Rate Limit and Remaining API calls</a>View remaining and ratelimit info.</li>
     </ol>
   """
@@ -45,21 +45,21 @@ end
 
 def _pre_process_resp resp
   #going to do storage stuff.
-
+  return
 end
 
 def process_resp_with_like resp
-  _pre_process_resp
+  _pre_process_resp resp
   resp.map{|media_item|  "<div style='float:left;'><img src='#{media_item.images.thumbnail.url}'><br/> <a href='/media_like/#{media_item.id}'>Like</a>  <a href='/media_unlike/#{media_item.id}'>Un-Like</a>  <br/>LikesCount=#{media_item.likes[:count]}</div>" } *"\n"
 end
 
 def process_resp_thumb_only resp
-  _pre_process_resp
+  #_pre_process_resp resp
   resp.map{|r| "<img src='#{r.images.thumbnail.url}'>" } * "\n"
 end
 
 def process_resp_std_with_debug resp
-  _pre_process_resp
+  _pre_process_resp resp
   resp.map{|r|  "<img src='#{r.images.standard_resolution.url}'> <pre>#{r.pretty_inspect}</pre>" } * "\n"
 end
 
