@@ -7,7 +7,7 @@ enable :sessions
 
 require "./config"
 
-per_page = 50 
+PER_PAGE = 50
 
 get "/" do
   '<a href="/oauth/connect">Connect with Instagram</a>'
@@ -43,30 +43,46 @@ get "/nav" do
   html
 end
 
-def process_resp2 resp
-  resp.map{}
+def process_resp_with_like resp
+  resp.map{|media_item|  "<div style='float:left;'><img src='#{media_item.images.thumbnail.url}'><br/> <a href='/media_like/#{media_item.id}'>Like</a>  <a href='/media_unlike/#{media_item.id}'>Un-Like</a>  <br/>LikesCount=#{media_item.likes[:count]}</div>" } *"\n"
 end
 
+def process_resp_thumb_only resp
+  resp.map{|r| "<img src='#{r.images.thumbnail.url}'>" } * "\n"
+end
+
+def process_resp_std_with_debug resp
+  output=""
+  resp.each do |r|
+    output << "<img src='#{r.images.standard_resolution.url}'>"
+    output << "<pre>#{r.pretty_inspect}</pre>"
+  end
+  output
+end
 
 get "/user_recent_media/:who" do
   client = Instagram.client(:access_token => session[:access_token])
   user = client.user_search(params[:who]).first
-  resp = client.user_recent_media( user.id , :count=>per_page)
+  resp = client.user_recent_media( user.id , :count=>PER_PAGE)
   html = "<h1>#{params[:who]}'s recent media</h1>"
-  
-  for media_item in resp
-    html << "<div style='float:left;'><img src='#{media_item.images.thumbnail.url}'><br/> <a href='/media_like/#{media_item.id}'>Like</a>  <a href='/media_unlike/#{media_item.id}'>Un-Like</a>  <br/>LikesCount=#{media_item.likes[:count]}</div>"
-  end
-
-  (10 - 1 ).times do |i|
+  num_pix = 0
+  temp = process_resp_with_like(resp)
+  num_pix = resp.count
+  num_pages = 1
+  200.times do |i|
     max_id = resp.pagination.next_max_id
+    if max_id.nil?
+      break
+    end
 
-    resp= client.user_recent_media( user.id , {:count=>per_page, :max_tag_id => max_id})                                                                                                                                        
-    html << process_tags_resp(resp)
-  end     
-
-
-
+    num_pages +=1
+    puts "Page #{num_pages}"
+    resp= client.user_recent_media( user.id , {:count=>PER_PAGE, :max_id => max_id})
+    num_pix += resp.count
+    temp << process_resp_with_like(resp)
+  end
+  html << "<h2>page count = #{num_pages}, pix count = #{num_pix}</h2>"
+  html << temp
   html
 end
 
@@ -146,15 +162,6 @@ get "/location_search" do
   html
 end
 
-def process_tags_resp resp
-  output=""
-  resp.each do |r|
-    #output << "<img src='#{r.images.standard_resolution.url}'>"   
-    output << "<img src='#{r.images.thumbnail.url}'>"   
-    #output << "<pre>#{r.pretty_inspect}</pre>" 
-  end
-  output
-end
 
 get "/tags/:name/:pages" do
   client = Instagram.client(:access_token => session[:access_token])
@@ -164,14 +171,14 @@ get "/tags/:name/:pages" do
   html << "<h2>Tag Name = #{tags[0].name}. Media Count =  #{tags[0].media_count}. </h2><br/><br/>"
   html << "<pre>#{tags.pretty_inspect}</pre>"
 
-  resp=client.tag_recent_media(tags[0].name, {:count => per_page})
-  html << process_tags_resp(resp)
+  resp=client.tag_recent_media(tags[0].name, {:count => PER_PAGE})
+  html << process_resp_thumb_only(resp)
 
   (params[:pages].to_i - 1 ).times do |i|
     max_id = resp.pagination.next_max_id
 
-    resp= client.tag_recent_media(tags[0].name, {:count => per_page, :max_tag_id => max_id})                                                                                                                                        
-    html << process_tags_resp(resp)
+    resp= client.tag_recent_media(tags[0].name, {:count => PER_PAGE, :max_tag_id => max_id})
+    html << process_resp_thumb_only(resp)
   end     
 
   html
