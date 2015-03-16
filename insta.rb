@@ -1,6 +1,8 @@
 require "sinatra"
 require "instagram"
 require "pp"
+require 'redis-queue'
+require "./common.rb"
 
 set :bind, '0.0.0.0'
 enable :sessions
@@ -8,6 +10,8 @@ enable :sessions
 require "./config"
 
 PER_PAGE = 50
+
+$queue = Redis::Queue.new(QUE_NAME, QUE_SUB_NMAE, :redis => Redis.new)
 
 get "/" do
   '<a href="/oauth/connect">Connect with Instagram</a>''<a href="/nav">Go to Navigation</a>'
@@ -45,6 +49,14 @@ end
 
 def _pre_process_resp resp
   #going to do storage stuff.
+  resp.each do |media_item|
+    obj = MyInsta.new
+    obj.image_url =media_item.images.standard_resolution.url
+    obj.insta_url = media_item.link
+    obj.tags = media_item.tags
+    obj.user = media_item.user.username
+    $queue.push Marshal.dump(obj)
+  end
   return
 end
 
@@ -54,7 +66,7 @@ def process_resp_with_like resp
 end
 
 def process_resp_thumb_only resp
-  #_pre_process_resp resp
+  _pre_process_resp resp
   resp.map{|r| "<img src='#{r.images.thumbnail.url}'>" } * "\n"
 end
 
