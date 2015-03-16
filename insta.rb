@@ -119,16 +119,17 @@ get "/user_media_feed" do
   html = "<h1>#{user.username}'s media feed</h1>"
 
   page_1 = client.user_media_feed(777)
-  page_2_max_id = page_1.pagination.next_max_id
-  page_2 = client.user_recent_media(777, :max_id => page_2_max_id ) unless page_2_max_id.nil?
-  html << "<h2>Page 1</h2><br/>"
-  for media_item in page_1
-    html << "<img src='#{media_item.images.thumbnail.url}'>"
+  html << process_resp_thumb_only(page_1)
+
+  page = page_1
+
+  20.times do |i|
+    max_id = page.pagination.next_max_id
+    page = client.user_recent_media(777, :max_id => max_id )
+    html << "<h2>Page #{i}</h2><br/>"
+    html << process_resp_thumb_only(page)
   end
-  html << "<h2>Page 2</h2><br/>"
-  for media_item in page_2
-    html << "<img src='#{media_item.images.thumbnail.url}'>"
-  end
+
   html
 end
 
