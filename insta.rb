@@ -36,13 +36,13 @@ get "/nav" do
     <h1>Ruby Instagram Gem Sample Application</h1>
     <ol>
       <li><a href='/user/deadmau5'>User Recent Media</a> Calls user_recent_media - Get a list of a user's most recent media</li>
+      <li><a href='/tags/porsche991/5'>Tags</a> Search for tags, view tag info and get media by tag</li>
       <li><a href='/user_media_feed'>User Media Feed</a> Calls user_media_feed - Get the currently authenticated user's media feed uses pagination</li>
       <li><a href='/location_recent_media'>Location Recent Media</a> Calls location_recent_media - Get a list of recent media at a given location, in this case, the Instagram office</li>
       <li><a href='/media_search'>Media Search</a> Calls media_search - Get a list of media close to a given latitude and longitude</li>
       <li><a href='/media_popular'>Popular Media</a> Calls media_popular - Get a list of the overall most popular media items</li>
       <li><a href='/user_search'>User Search</a> Calls user_search - Search for users on instagram, by name or username</li>
       <li><a href='/location_search'>Location Search</a> Calls location_search - Search for a location by lat/lng</li>
-      <li><a href='/tags/porsche991/2'>Tags</a> Search for tags, view tag info and get media by tag</li>
       <li><a href='/limits'>View Rate Limit and Remaining API calls</a>View remaining and ratelimit info.</li>
     </ol>
   """
@@ -111,8 +111,8 @@ get "/user/:who" do
     temp << process_resp_with_like(resp)
   end
   html << "<h2>page count = #{num_pages}, pix count = #{num_pix}</h2>"
-  html << "<h3>Tags: </h3>"  + $tags.uniq.sort.map{|tag|"<a href='/tags/#{tag}/2'>#{tag}</a>"} * " " + "<br>"
-  html << "<h3>Users: </h3>" + $users.uniq.sort.map{|user|"<a href='/user_recent_media/#{user}'>#{user}</a>"} * " " + "<br>"
+  html << "<h3>Tags: </h3>"  + $tags.uniq.sort.map{|tag|"<a href='/tags/#{tag}/5'>#{tag}</a>"} * " " + "<br>"
+  html << "<h3>Users: </h3>" + $users.uniq.sort.map{|user|"<a href='/user/#{user}'>#{user}</a>"} * " " + "<br>"
   html << temp
   html
 end
