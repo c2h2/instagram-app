@@ -12,7 +12,7 @@ $queue = Redis::Queue.new(QUE_NAME, QUE_SUB_NMAE, :redis => Redis.new)
 UA="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
 DIR=`pwd`.strip+"/insta_data"
 TIMEOUT=20
-THREADS=32
+THREADS=20
 
 def instagram_dl url, user, original_url, tags
   begin
@@ -39,25 +39,14 @@ def instagram_dl url, user, original_url, tags
       local.write(content)
     end
 
-    #META
+    #META and TAGS
     dir = DIR + "/meta"
     FileUtils.mkpath(dir)
     _fn= "#{dir}/#{unique_id}-#{user}.txt"
 
     File.open(_fn, "wb") do |local|
-      local.write(tags * "\n")
+      local.write("#{fn}|#{user}|#{url}|#{tags * ','}")
     end
-
-    #TAGS
-    tags.each do |tag|
-      dir = DIR + "/tags/" + tag
-      FileUtils.mkpath(dir)
-      _fn="#{dir}/#{fn}"
-      File.open(_fn, "wb") do |local|
-        local.write(content)
-      end
-    end
-
 
     return 0
 
