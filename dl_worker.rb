@@ -6,6 +6,7 @@ require 'fileutils'
 require "./config.rb"
 require "./common.rb"
 
+#require "hashie" #try
 
 $queue = Redis::Queue.new(QUE_NAME, QUE_SUB_NMAE, :redis => Redis.new)
 
@@ -14,10 +15,10 @@ DIR=`pwd`.strip+"/insta_data"
 TIMEOUT=20
 THREADS=20
 
-def instagram_dl url, user, original_url, tags
+def instagram_dl url, user, original_url, tags, likes, media_id
   begin
     unique_id = original_url.split("/").last
-    fn = unique_id + ".JPEG"
+    fn = media_id + ".JPEG"
 
     #USER DIR
     dir = DIR + "/users/" + user
@@ -42,10 +43,10 @@ def instagram_dl url, user, original_url, tags
     #META and TAGS
     dir = DIR + "/meta"
     FileUtils.mkpath(dir)
-    _fn= "#{dir}/#{unique_id}-#{user}.txt"
+    _fn= "#{dir}/#{media_id}-#{user}.txt"
 
     File.open(_fn, "wb") do |local|
-      local.write("#{fn}|#{user}|#{url}|#{tags * ','}")
+      local.write("#{fn}|#{user}|#{original_url}|#{likes}|#{tags * ','}")
     end
 
     return 0
@@ -60,7 +61,7 @@ end
 
 def work obj
   mi = Marshal.load(obj)
-  code = instagram_dl mi.image_url, mi.user, mi.insta_url, mi.tags
+  code = instagram_dl mi.image_url, mi.user, mi.insta_url, mi.tags, mi.likes, mi.media_id
   if code == 0
     puts "OKAY: #{mi.user} #{mi.image_url}"
   elsif code == 1
