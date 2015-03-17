@@ -13,7 +13,7 @@ $queue = Redis::Queue.new(QUE_NAME, QUE_SUB_NMAE, :redis => Redis.new)
 UA="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
 DIR=`pwd`.strip+"/insta_data"
 TIMEOUT=20
-THREADS=20
+THREADS=10
 
 def instagram_dl url, user, original_url, tags, likes, media_id
   begin
@@ -64,8 +64,12 @@ def instagram_dl url, user, original_url, tags, likes, media_id
 end
 
 
-def work obj
+def work obj, retry_count=3
   mi = Marshal.load(obj)
+  if retry_count <= 0
+    puts "TOTAL_FAILED: #{mi.user} #{mi.image_url}"
+  end
+
   code = instagram_dl mi.image_url, mi.user, mi.insta_url, mi.tags, mi.likes, mi.media_id
   if code == 0
     puts "OKAY: #{mi.user} #{mi.image_url}"
@@ -74,7 +78,8 @@ def work obj
   elsif code == 2
     puts "SPAM : #{mi.user} #{mi.image_url}"
   else
-    puts "FAILED: #{mi.user} #{mi.image_url}"
+    puts "RETRY: #{mi.user} #{mi.image_url}"
+    work obj, retry_count - 1
   end
 
 end
