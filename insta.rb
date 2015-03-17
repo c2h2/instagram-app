@@ -88,6 +88,7 @@ def process_resp_std_with_debug resp
 end
 
 get "/user/:who" do
+  `echo #{params[:who]} >> requested_users.txt`
   $tags=[]
   $users=[]
   client = Instagram.client(:access_token => session[:access_token])
@@ -118,6 +119,7 @@ get "/user/:who" do
 end
 
 get "/tags/:name/:pages" do
+  `echo #{params[:name]} >> requested_tags.txt`
   $tags=[]
   $users=[]
   client = Instagram.client(:access_token => session[:access_token])
