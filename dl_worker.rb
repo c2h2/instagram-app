@@ -73,11 +73,11 @@ def work obj
   mi = Marshal.load(obj)
   code = instagram_dl mi.image_url, mi.user, mi.insta_url, mi.tags
   if code == 0
-    puts "OKAY: #{mi.image_url}"
+    puts "OKAY: #{mi.user} #{mi.image_url}"
   elsif code == 1
-    puts "ALEADY have: #{mi.image_url}"
+    puts "ALEADY have: #{mi.user} #{mi.image_url}"
   else
-    puts "FAILED: #{mi.image_url}"
+    puts "FAILED: #{mi.user} #{mi.image_url}"
   end
 
 end

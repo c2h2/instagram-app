@@ -62,7 +62,25 @@ end
 
 def process_resp_with_like resp
   _pre_process_resp resp
-  resp.map{|media_item|  "<div style='float:left;'><img src='#{media_item.images.thumbnail.url}'><br/> <a href='/media_like/#{media_item.id}'>Like</a>  <a href='/media_unlike/#{media_item.id}'>Un-Like</a>  <br/>LikesCount=#{media_item.likes[:count]}</div>" } *"\n"
+  tags=[]
+  users = []
+
+  resp.each do |r|
+    tags = tags + r.tags
+    users = users + r.comments.data.map{|u| u.from.username}
+  end
+
+  tags.uniq!
+  users.uniq!
+
+
+  $pre_html += tags.map{|tag|"<a href='/tags/#{tag}/2'>T: #{tag}</a>"} * " " + "<br>"
+  $pre_user_html += users.map{|user|"<a href='/user_recent_media/#{user}'>User: #{user}</a>"} * " " + "<br>"
+
+  #ret = resp.map{|media_item|  "<div style='float:left;'><img src='#{media_item.images.thumbnail.url}'><br/> <a href='/media_like/#{media_item.id}'>Like</a>  <a href='/media_unlike/#{media_item.id}'>Un-Like</a>  <br/>LikesCount=#{media_item.likes[:count]}</div>" } *"\n"
+  ret = resp.map{|media_item|  "<div style='float:left;'><img src='#{media_item.images.thumbnail.url}'><br/><br/>LikesCount=#{media_item.likes[:count]}</div>" } *"\n"
+
+
 end
 
 def process_resp_thumb_only resp
@@ -76,6 +94,8 @@ def process_resp_std_with_debug resp
 end
 
 get "/user_recent_media/:who" do
+  $pre_html=""
+  $pre_user_html=""
   client = Instagram.client(:access_token => session[:access_token])
   user = client.user_search(params[:who]).first
   resp = client.user_recent_media( user.id , :count=>PER_PAGE)
@@ -97,6 +117,8 @@ get "/user_recent_media/:who" do
     temp << process_resp_with_like(resp)
   end
   html << "<h2>page count = #{num_pages}, pix count = #{num_pix}</h2>"
+  html << $pre_html
+  html << $pre_user_html
   html << temp
   html
 end
