@@ -18,13 +18,13 @@ THREADS=20
 def instagram_dl url, user, original_url, tags, likes, media_id
   begin
 
-    if likes < 4 or tags.length > 12
+    if likes < 4
       return 2
     end
 
     unique_id = original_url.split("/").last
     fn = media_id + ".JPEG"
-    
+
     #USER DIR
     dir = DIR + "/users/" + user.split("")[0]+"/"+user
 
