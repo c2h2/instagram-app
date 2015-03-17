@@ -17,11 +17,16 @@ THREADS=20
 
 def instagram_dl url, user, original_url, tags, likes, media_id
   begin
+
+    if likes < 4 or tags.length > 12
+      return 2
+    end
+
     unique_id = original_url.split("/").last
     fn = media_id + ".JPEG"
-
+    
     #USER DIR
-    dir = DIR + "/users/" + user
+    dir = DIR + "/users/" + user.split("")[0]+"/"+user
 
     FileUtils.mkpath(dir)
     _fn="#{dir}/#{fn}"
@@ -46,7 +51,7 @@ def instagram_dl url, user, original_url, tags, likes, media_id
     _fn= "#{dir}/#{media_id}-#{user}.txt"
 
     File.open(_fn, "wb") do |local|
-      local.write("#{fn}|#{user}|#{original_url}|#{likes}|#{tags * ','}")
+      local.write("#{fn}|#{media_id}|#{user}|#{original_url}|#{likes}|#{tags * ','}")
     end
 
     return 0
@@ -66,6 +71,8 @@ def work obj
     puts "OKAY: #{mi.user} #{mi.image_url}"
   elsif code == 1
     puts "ALEADY have: #{mi.user} #{mi.image_url}"
+  elsif code == 2
+    puts "SPAM : #{mi.user} #{mi.image_url}"
   else
     puts "FAILED: #{mi.user} #{mi.image_url}"
   end
