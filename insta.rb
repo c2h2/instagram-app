@@ -112,8 +112,8 @@ get "/user/:who" do
     temp << process_resp_with_like(resp)
   end
   html << "<h2>page count = #{num_pages}, pix count = #{num_pix}</h2>"
-  html << "<h3>Tags: </h3>"  + $tags.uniq.sort.map{|tag|"<a href='/tags/#{tag}/5'>#{tag}</a>"} * " " + "<br>"
   html << "<h3>Users: </h3>" + $users.uniq.sort.map{|user|"<a href='/user/#{user}'>#{user}</a>"} * " " + "<br>"
+  html << "<h3>Tags: </h3>"  + $tags.uniq.sort.map{|tag|"<a href='/tags/#{tag}/5'>#{tag}</a>"} * " " + "<br>"
   html << temp
   html
 end
