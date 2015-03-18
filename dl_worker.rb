@@ -13,12 +13,12 @@ $queue = Redis::Queue.new(QUE_NAME, QUE_SUB_NMAE, :redis => Redis.new)
 UA="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
 DIR=`pwd`.strip+"/insta_data"
 TIMEOUT=20
-THREADS=10
+THREADS=20
 
 def instagram_dl url, user, original_url, tags, likes, media_id
   begin
 
-    if likes < 4
+    if likes < 2
       return 2
     end
 
@@ -30,6 +30,7 @@ def instagram_dl url, user, original_url, tags, likes, media_id
 
     FileUtils.mkpath(dir)
     _fn="#{dir}/#{fn}"
+    copy_fn = _fn
 
     if File.file?(_fn)
       return 1
@@ -51,7 +52,7 @@ def instagram_dl url, user, original_url, tags, likes, media_id
     _fn= "#{dir}/#{media_id}-#{user}.txt"
 
     File.open(_fn, "wb") do |local|
-      local.write("#{fn}|#{media_id}|#{user}|#{original_url}|#{likes}|#{tags * ','}")
+      local.write("#{copy_fn}|#{media_id}|#{user}|#{original_url}|#{likes}|#{tags * ','}")
     end
 
     return 0
